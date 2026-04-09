@@ -148,7 +148,7 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/real-estate-ai-platform.git
+git clone https://github.com/navruzbek123/real-estate-ai-platform
 cd real-estate-ai-platform
 
 # Create virtual environment
