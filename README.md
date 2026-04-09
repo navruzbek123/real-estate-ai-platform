@@ -22,7 +22,7 @@
 ### 🤖 AI Price Prediction
 *Machine Learning based real estate valuation*
 
-![AI Price Prediction](screenshots/ai-prediction.png)
+![AI Price Prediction](screenshots/mobile-view.png)
 
 ### 🗺️ Property Detail with Location Map
 *Full property information with Yandex Map integration*
@@ -32,7 +32,7 @@
 ### 📱 Responsive Design
 *Mobile-friendly interface*
 
-![Mobile View](screenshots/mobile-view.png)
+![Mobile View](screenshots/ai-prediction.png)
 
 ### 👤 User Profile Dashboard
 *Manage listings, favorites, and AI estimation history*
