@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block hero %}
+<section class="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+        <div class="hero-content">
+            <h1>Найдите идеальную недвижимость</h1>
+            <p>AI-оценка, современный поиск, тысячи объявлений</p>
+            
+            <form action="{% url 'search' %}" method="GET" class="hero-search">
+                <div class="search-row">
+                    <input type="text" name="q" placeholder="Поиск по названию, адресу...">
+                    <select name="city">
+                        <option value="">Город</option>
+                        <option value="Москва">Москва</option>
+                        <option value="Санкт-Петербург">Санкт-Петербург</option>
+                        <option value="Новосибирск">Новосибирск</option>
+                        <option value="Екатеринбург">Екатеринбург</option>
+                        <option value="Казань">Казань</option>
+                    </select>
+                    <select name="bedrooms">
+                        <option value="">Комнаты</option>
+                        <option value="1">1+</option>
+                        <option value="2">2+</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Найти
+                    </button>
+                </div>
+            </form>
+            
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">10,000+</span>
+                    <span class="stat-label">Объявлений</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">5,000+</span>
+                    <span class="stat-label">Пользователей</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">50+</span>
+                    <span class="stat-label">Городов</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-star"></i> Премиум объявления</h2>
+            <a href="{% url 'listings' %}" class="btn btn-outline">Все объявления</a>
+        </div>
+        
+        <div class="listings-grid">
+            {% for listing in premium_listings %}
+            <div class="listing-card {% if listing.is_premium %}premium{% endif %}">
+                <div class="card-image">
+                    {% if listing.is_premium %}
+                    <span class="badge badge-premium"><i class="fas fa-crown"></i> Premium</span>
+                    {% endif %}
+                    <img src="{{ listing.photo_main.url }}" alt="{{ listing.title }}">
+                    <button class="favorite-btn" data-id="{{ listing.id }}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <h3><a href="{% url 'listing-detail' listing.slug %}">{{ listing.title }}</a></h3>
+                    <p class="location"><i class="fas fa-map-marker-alt"></i> {{ listing.city }}, {{ listing.address }}</p>
+                    <div class="card-features">
+                        <span><i class="fas fa-expand"></i> {{ listing.sqft }} м²</span>
+                        <span><i class="fas fa-bed"></i> {{ listing.bedrooms }} ком.</span>
+                        <span><i class="fas fa-bath"></i> {{ listing.bathrooms }}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="price">{{ listing.price|floatformint:0 }} ₽</span>
+                        <a href="{% url 'listing-detail' listing.slug %}" class="btn btn-sm btn-primary">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="no-results">Премиум объявления пока не добавлены</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section bg-light">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-robot"></i>
+                <h3>AI Оценка</h3>
+                <p>Узнайте рыночную стоимость недвижимости за секунды с помощью искусственного интеллекта</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-bolt"></i>
+                <h3>Быстрый поиск</h3>
+                <p>Умная система поиска с фильтрами по цене, площади, расположению</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-shield-alt"></i>
+                <h3>Безопасность</h3>
+                <p>Защищённые платежи и проверенные объявления</p>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-heart"></i>
+                <h3>Избранное</h3>
+                <p>Сохраняйте понравившиеся объявления в избранном</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2><i class="fas fa-clock"></i> Последние объявления</h2>
+        </div>
+        
+        <div class="listings-grid">
+            {% for listing in listings %}
+            <div class="listing-card {% if listing.is_premium %}premium{% endif %}">
+                <div class="card-image">
+                    {% if listing.is_premium %}
+                    <span class="badge badge-premium"><i class="fas fa-crown"></i> Premium</span>
+                    {% endif %}
+                    <img src="{{ listing.photo_main.url }}" alt="{{ listing.title }}">
+                    <button class="favorite-btn" data-id="{{ listing.id }}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <h3><a href="{% url 'listing-detail' listing.slug %}">{{ listing.title }}</a></h3>
+                    <p class="location"><i class="fas fa-map-marker-alt"></i> {{ listing.city }}</p>
+                    <div class="card-features">
+                        <span><i class="fas fa-expand"></i> {{ listing.sqft }} м²</span>
+                        <span><i class="fas fa-bed"></i> {{ listing.bedrooms }} ком.</span>
+                        <span><i class="fas fa-bath"></i> {{ listing.bathrooms }}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="price">{{ listing.price|floatformint:0 }} ₽</span>
+                        <a href="{% url 'listing-detail' listing.slug %}" class="btn btn-sm btn-primary">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="no-results">Объявления пока не добавлены</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

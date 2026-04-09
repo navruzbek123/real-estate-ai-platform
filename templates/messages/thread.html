@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ message.subject }}{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <a href="{% url 'inbox' %}" class="back-link"><i class="fas fa-arrow-left"></i> Назад к сообщениям</a>
+        
+        <div class="thread-container">
+            <div class="thread-header">
+                <h1>{{ message.subject }}</h1>
+                <p>Собеседник: <strong>{{ other_user.name }}</strong> ({{ other_user.email }})</p>
+            </div>
+            
+            <div class="messages-list thread-messages">
+                {% for msg in messages %}
+                <div class="message-bubble {% if msg.sender == user %}sent{% else %}received{% endif %}">
+                    <div class="bubble-content">
+                        <p>{{ msg.body }}</p>
+                        <span class="bubble-date">{{ msg.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <form action="{% url 'send-message' %}" method="POST" class="reply-form">
+                {% csrf_token %}
+                <input type="hidden" name="recipient_id" value="{{ other_user.id }}">
+                {% if message.listing %}
+                <input type="hidden" name="listing_id" value="{{ message.listing.id }}">
+                {% endif %}
+                <input type="hidden" name="subject" value="{{ message.subject }}">
+                <textarea name="body" rows="3" required placeholder="Ваш ответ..."></textarea>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-reply"></i> Ответить
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

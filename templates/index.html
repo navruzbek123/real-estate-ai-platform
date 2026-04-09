@@ -1,0 +1,611 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Главная - Карта{% endblock %}
+
+{% block extra_css %}
+<style>
+    .main-content {
+        display: flex;
+        margin-top: 70px;
+        min-height: calc(100vh - 70px);
+    }
+    
+    .left-sidebar {
+        width: 350px;
+        min-width: 350px;
+        background: #fff;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 70px);
+        position: sticky;
+        top: 70px;
+    }
+    
+    .sidebar-filters {
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .sidebar-filters h3 {
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .filter-group {
+        margin-bottom: 15px;
+    }
+    
+    .filter-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #333;
+        font-size: 13px;
+    }
+    
+    .filter-group input,
+    .filter-group select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 13px;
+    }
+    
+    .filter-group input:focus,
+    .filter-group select:focus {
+        outline: none;
+        border-color: #4a90d9;
+    }
+    
+    .price-range {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    .price-range span {
+        color: #999;
+    }
+    
+    .btn-filter {
+        width: 100%;
+        padding: 10px;
+        background: #4a90d9;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    
+    .btn-filter:hover {
+        background: #3a7bc8;
+    }
+    
+    .sidebar-map {
+        padding: 15px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .sidebar-map h4 {
+        margin-bottom: 10px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    #sidebar-map {
+        width: 100%;
+        height: 200px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+    }
+    
+    .map-legend {
+        display: flex;
+        gap: 15px;
+        margin-top: 10px;
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .map-legend span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .map-legend .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+    }
+    
+    .map-legend .dot.active { background: #4a90d9; }
+    .map-legend .dot.pending { background: #f59e0b; }
+    .map-legend .dot.premium { background: #eab308; }
+    
+    .listings-count-sidebar {
+        padding: 10px 20px;
+        background: #f8f9fa;
+        font-size: 13px;
+        color: #666;
+    }
+    
+    .listings-count-sidebar strong {
+        color: #333;
+    }
+    
+    .right-content {
+        flex: 1;
+        padding: 25px;
+        background: #f5f5f5;
+    }
+    
+    .listings-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .listings-header h2 {
+        font-size: 1.3rem;
+        margin: 0;
+    }
+    
+    .listings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    
+    .listing-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .listing-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+    }
+    
+    .listing-card.premium {
+        border: 2px solid #eab308;
+    }
+    
+    .card-image {
+        position: relative;
+        height: 180px;
+    }
+    
+    .card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    
+    .no-image-placeholder i {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+    
+    .no-image-placeholder span {
+        font-size: 14px;
+        font-weight: 500;
+    }
+    
+    .badge-premium {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: linear-gradient(135deg, #eab308, #ca8a04);
+        color: #fff;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+    
+    .favorite-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 36px;
+        height: 36px;
+        background: rgba(255,255,255,0.9);
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .favorite-btn i {
+        color: #e74c3c;
+    }
+    
+    .card-body {
+        padding: 15px;
+    }
+    
+    .card-body h3 {
+        font-size: 15px;
+        margin: 0 0 8px 0;
+        font-weight: 600;
+    }
+    
+    .card-body h3 a {
+        color: #333;
+        text-decoration: none;
+    }
+    
+    .card-body .location {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 10px;
+    }
+    
+    .card-features {
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 12px;
+    }
+    
+    .card-features span {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 12px;
+        border-top: 1px solid #eee;
+    }
+    
+    .card-footer .price {
+        font-size: 18px;
+        font-weight: 700;
+        color: #4a90d9;
+    }
+    
+    .card-footer .btn-sm {
+        padding: 6px 14px;
+        background: #4a90d9;
+        color: #fff;
+        border-radius: 6px;
+        font-size: 12px;
+        text-decoration: none;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        color: #666;
+    }
+    
+    .no-results i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        color: #ddd;
+    }
+    
+    .map-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255,255,255,0.95);
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 100;
+        font-size: 13px;
+    }
+    
+    @media (max-width: 992px) {
+        .main-content {
+            flex-direction: column;
+        }
+        
+        .left-sidebar {
+            width: 100%;
+            min-width: 100%;
+            max-height: none;
+            position: relative;
+            top: 0;
+        }
+        
+        #sidebar-map {
+            height: 250px;
+        }
+        
+        .right-content {
+            padding: 15px;
+        }
+        
+        .listings-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <aside class="left-sidebar">
+        <div class="sidebar-filters">
+            <h3><i class="fas fa-filter"></i> Фильтры</h3>
+            
+            <div class="listings-count-sidebar">
+                Найдено: <strong id="count-display">0</strong> объявлений
+            </div>
+            
+            <form id="filter-form">
+                <div class="filter-group">
+                    <label>Город</label>
+                    <select name="city" id="city-select">
+                        <option value="">Все города</option>
+                        {% for city in cities %}
+                        <option value="{{ city }}">{{ city }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Цена</label>
+                    <div class="price-range">
+                        <input type="number" name="min_price" id="min-price" placeholder="От" style="width: 50%;">
+                        <span>-</span>
+                        <input type="number" name="max_price" id="max-price" placeholder="До" style="width: 50%;">
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <label>Комнаты</label>
+                    <select name="bedrooms" id="bedrooms-select">
+                        <option value="">Любое</option>
+                        <option value="1">1+</option>
+                        <option value="2">2+</option>
+                        <option value="3">3+</option>
+                        <option value="4">4+</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn-filter">
+                    <i class="fas fa-search"></i> Найти
+                </button>
+            </form>
+        </div>
+        
+        <div class="sidebar-map">
+            <h4><i class="fas fa-map-marker-alt"></i> Карта объектов</h4>
+            <div id="sidebar-map" style="position: relative;"></div>
+            <div class="map-legend">
+                <span><div class="dot active"></div> Активные</span>
+                <span><div class="dot pending"></div> На проверке</span>
+                <span><div class="dot premium"></div> Premium</span>
+            </div>
+        </div>
+    </aside>
+    
+    <div class="right-content">
+        <div class="listings-header">
+            <h2><i class="fas fa-building"></i> Объявления</h2>
+            <a href="{% url 'listings' %}" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">
+                Все объявления
+            </a>
+        </div>
+        
+        <div class="listings-grid" id="listings-container">
+            {% for listing in listings %}
+            <div class="listing-card {% if listing.is_premium %}premium{% endif %}" data-id="{{ listing.id }}">
+                <div class="card-image">
+                    {% if listing.is_premium %}
+                    <span class="badge-premium"><i class="fas fa-crown"></i> Premium</span>
+                    {% endif %}
+                    {% if listing.photo_main %}
+                    <img src="{{ listing.photo_main.url }}" alt="{{ listing.title }}">
+                    {% else %}
+                    <div class="no-image-placeholder">
+                        <i class="fas fa-home"></i>
+                        <span>{{ listing.city }}</span>
+                    </div>
+                    {% endif %}
+                    <button class="favorite-btn" data-id="{{ listing.id }}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <h3><a href="{% url 'listing-detail' listing.slug %}">{{ listing.title }}</a></h3>
+                    <p class="location"><i class="fas fa-map-marker-alt"></i> {{ listing.city }}</p>
+                    <div class="card-features">
+                        <span><i class="fas fa-expand"></i> {{ listing.sqft }} м²</span>
+                        <span><i class="fas fa-bed"></i> {{ listing.bedrooms }} ком.</span>
+                        <span><i class="fas fa-bath"></i> {{ listing.bathrooms }}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="price">{{ listing.price|floatformat:0 }} ₽</span>
+                        <a href="{% url 'listing-detail' listing.slug %}" class="btn-sm">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-results" style="grid-column: 1 / -1;">
+                <i class="fas fa-search"></i>
+                <p>Объявления не найдены</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://api-maps.yandex.ru/2.1/?apikey=488b5b96-5d6b-4664-8bdb-76ef7016822f&lang=ru_RU" type="text/javascript"></script>
+<script>
+let map;
+let allListings = [];
+
+function initMap() {
+    ymaps.ready(function() {
+        map = new ymaps.Map('sidebar-map', {
+            center: [55.755819, 37.617644],
+            zoom: 10,
+            controls: ['zoomControl']
+        });
+        
+        map.controls.get('zoomControl').options.set('position', 'top_right');
+        
+        loadListings();
+    });
+}
+
+function loadListings(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.city) params.append('city', filters.city);
+    if (filters.min_price) params.append('min_price', filters.min_price);
+    if (filters.max_price) params.append('max_price', filters.max_price);
+    if (filters.bedrooms) params.append('bedrooms', filters.bedrooms);
+    
+    fetch(`/api/listings/map/?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            allListings = data.listings;
+            document.getElementById('count-display').textContent = data.listings.length;
+            displayListings(data.listings);
+            updateMapMarkers(data.listings);
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function displayListings(listings) {
+    const container = document.getElementById('listings-container');
+    
+    if (listings.length === 0) {
+        container.innerHTML = `
+            <div class="no-results" style="grid-column: 1 / -1;">
+                <i class="fas fa-search"></i>
+                <p>Объявления не найдены</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = listings.map(listing => `
+        <div class="listing-card ${listing.is_premium ? 'premium' : ''}" data-id="${listing.id}">
+            <div class="card-image">
+                ${listing.is_premium ? '<span class="badge-premium"><i class="fas fa-crown"></i> Premium</span>' : ''}
+                ${listing.photo_main 
+                    ? `<img src="${listing.photo_main}" alt="${listing.title}">` 
+                    : `<div class="no-image-placeholder"><i class="fas fa-home"></i><span>${listing.city}</span></div>`}
+                <button class="favorite-btn" data-id="${listing.id}">
+                    <i class="far fa-heart"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <h3><a href="${listing.listing_url}">${listing.title}</a></h3>
+                <p class="location"><i class="fas fa-map-marker-alt"></i> ${listing.city}</p>
+                <div class="card-features">
+                    <span><i class="fas fa-expand"></i> ${listing.sqft} м²</span>
+                    <span><i class="fas fa-bed"></i> ${listing.bedrooms} ком.</span>
+                </div>
+                <div class="card-footer">
+                    <span class="price">${formatPrice(listing.price)} ₽</span>
+                    <a href="${listing.listing_url}" class="btn-sm">Подробнее</a>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function updateMapMarkers(listings) {
+    if (!map) return;
+    
+    map.geoObjects.removeAll();
+    
+    if (listings.length === 0) return;
+    
+    listings.forEach(listing => {
+        if (!listing.latitude || !listing.longitude) return;
+        
+        const placemark = new ymaps.Placemark(
+            [listing.latitude, listing.longitude],
+            {
+                hintContent: listing.title,
+                balloonContent: `<strong>${listing.title}</strong><br>${formatPrice(listing.price)} ₽`
+            },
+            {
+                preset: listing.is_premium ? 'islands#yellowHomeIcon' : 'islands#blueHomeIcon'
+            }
+        );
+        
+        placemark.events.add('click', function() {
+            window.location.href = listing.listing_url;
+        });
+        
+        map.geoObjects.add(placemark);
+    });
+    
+    const bounds = map.geoObjects.getBounds();
+    if (bounds) {
+        map.setBounds(bounds, { checkZoomRange: true, zoomMargin: 30 });
+    }
+}
+
+function formatPrice(price) {
+    return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    initMap();
+    
+    document.getElementById('filter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        applyFilters();
+    });
+    
+    let debounceTimer;
+    ['city-select', 'min-price', 'max-price', 'bedrooms-select'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', function() {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(applyFilters, 300);
+            });
+        }
+    });
+});
+
+function applyFilters() {
+    loadListings({
+        city: document.getElementById('city-select')?.value || '',
+        min_price: document.getElementById('min-price')?.value || '',
+        max_price: document.getElementById('max-price')?.value || '',
+        bedrooms: document.getElementById('bedrooms-select')?.value || ''
+    });
+}
+</script>
+{% endblock %}

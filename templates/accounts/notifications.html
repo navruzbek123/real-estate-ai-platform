@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Уведомления{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h1><i class="fas fa-bell"></i> Уведомления</h1>
+            <button id="markAllRead" class="btn btn-outline">Отметить все прочитанными</button>
+        </div>
+        
+        {% if notifications %}
+        <div class="notifications-list">
+            {% for n in notifications %}
+            <a href="{{ n.link }}" class="notification-item {% if not n.is_read %}unread{% endif %}">
+                <div class="notification-icon">
+                    <i class="fas fa-{% if n.notification_type == 'ai_estimation' %}robot{% elif n.notification_type == 'message' %}envelope{% elif n.notification_type == 'listing_expiry' %}clock{% elif n.notification_type == 'premium' %}crown{% else %}bell{% endif %}"></i>
+                </div>
+                <div class="notification-content">
+                    <strong>{{ n.title }}</strong>
+                    <p>{{ n.message }}</p>
+                    <small>{{ n.created_at|date:"d.m.Y H:i" }}</small>
+                </div>
+                {% if not n.is_read %}
+                <span class="unread-dot"></span>
+                {% endif %}
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="empty-state">Нет уведомлений</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$('#markAllRead').click(function() {
+    $.post('{% url "mark-all-read" %}', {csrfmiddlewaretoken: '{{ csrf_token }}'}, function() {
+        location.reload();
+    });
+});
+</script>
+{% endblock %}

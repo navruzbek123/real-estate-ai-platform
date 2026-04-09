@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}История платежей{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="section-title"><i class="fas fa-history"></i> История платежей</h1>
+        
+        {% if transactions %}
+        <table class="payments-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Объявление</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                    <th>Дата</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>#{{ t.id }}</td>
+                    <td>
+                        {% if t.listing %}
+                        <a href="{% url 'listing-detail' t.listing.slug %}">{{ t.listing.title }}</a>
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>{{ t.amount }} {{ t.currency }}</td>
+                    <td>
+                        <span class="status-badge status-{{ t.status }}">
+                            {% if t.status == 'completed' %}Оплачено{% elif t.status == 'pending' %}Ожидание{% elif t.status == 'failed' %}Ошибка{% else %}{{ t.status }}{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ t.created_at|date:"d.m.Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p class="empty-state">Нет платежей</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

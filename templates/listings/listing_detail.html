@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ listing.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .listing-map-section {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .listing-map-section h2 {
+        margin-bottom: 15px;
+        font-size: 1.3rem;
+    }
+    
+    .no-image-placeholder {
+        width: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    
+    .no-image-placeholder i {
+        font-size: 72px;
+        margin-bottom: 15px;
+    }
+    
+    .no-image-placeholder span {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 30px;
+    }
+    
+    .detail-placeholder {
+        min-height: 400px;
+        border-radius: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="listing-detail">
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="{% url 'home' %}">Главная</a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'listings' %}">Объявления</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>{{ listing.title }}</span>
+        </div>
+        
+        <div class="listing-header">
+            <div>
+                <h1>{{ listing.title }}</h1>
+                <p class="location"><i class="fas fa-map-marker-alt"></i> {{ listing.address }}, {{ listing.city }}, {{ listing.state }} {{ listing.zipcode }}</p>
+            </div>
+            <div class="listing-price">
+                <span class="price">{{ listing.price|floatformat:0 }} ₽</span>
+                {% if listing.is_premium %}
+                <span class="badge badge-premium"><i class="fas fa-crown"></i> Premium</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="listing-content">
+            <div class="listing-main">
+                <div class="gallery">
+                    {% if listing.photo_main %}
+                    <img src="{{ listing.photo_main.url }}" alt="{{ listing.title }}" class="main-photo">
+                    {% else %}
+                    <div class="no-image-placeholder detail-placeholder">
+                        <i class="fas fa-home"></i>
+                        <span>{{ listing.city }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="listing-info">
+                    <h2><i class="fas fa-info-circle"></i> Характеристики</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <i class="fas fa-expand"></i>
+                            <span class="label">Площадь</span>
+                            <span class="value">{{ listing.sqft }} м²</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-bed"></i>
+                            <span class="label">Комнаты</span>
+                            <span class="value">{{ listing.bedrooms }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-bath"></i>
+                            <span class="label">Санузел</span>
+                            <span class="value">{{ listing.bathrooms }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-home"></i>
+                            <span class="label">Тип</span>
+                            <span class="value">{{ listing.home_type }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-tag"></i>
+                            <span class="label">Продажа/Аренда</span>
+                            <span class="value">{{ listing.sale_type }}</span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-calendar"></i>
+                            <span class="label">Дата</span>
+                            <span class="value">{{ listing.list_date|date:"d.m.Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="listing-description">
+                    <h2><i class="fas fa-align-left"></i> Описание</h2>
+                    <p>{{ listing.description|linebreaks }}</p>
+                </div>
+                
+                <div class="listing-map-section">
+                    <h2><i class="fas fa-map-marked-alt"></i> Расположение на карте</h2>
+                    <div id="listing-map" style="width: 100%; height: 400px; border-radius: 10px;"></div>
+                    <div id="map-loading-indicator" style="text-align: center; padding: 20px; display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Загрузка карты...
+                    </div>
+                    <input type="hidden" id="listing-lat" value="{{ listing.latitude|default:'' }}">
+                    <input type="hidden" id="listing-lng" value="{{ listing.longitude|default:'' }}">
+                    <input type="hidden" id="listing-full-address" value="{% if listing.address %}{{ listing.address }}, {% endif %}{% if listing.city %}{{ listing.city }}{% endif %}{% if listing.state %}, {{ listing.state }}{% endif %}{% if listing.zipcode %} {{ listing.zipcode }}{% endif %}">
+                </div>
+                
+                <div class="ai-estimation-section">
+                    <h2><i class="fas fa-robot"></i> AI Оценка недвижимости</h2>
+                    {% if user.is_authenticated %}
+                    <form id="aiForm" class="ai-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Площадь (м²)</label>
+                                <input type="number" name="area" value="{{ listing.sqft }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Комнаты</label>
+                                <input type="number" name="rooms" value="{{ listing.bedrooms }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Город</label>
+                                <input type="text" name="city" value="{{ listing.city }}" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-calculator"></i> Оценить
+                        </button>
+                    </form>
+                    <div id="aiResult" class="ai-result" style="display:none;"></div>
+                    {% else %}
+                    <p><a href="{% url 'login' %}">Войдите</a>, чтобы получить AI оценку</p>
+                    {% endif %}
+                </div>
+                
+                <div class="contact-section">
+                    <h2><i class="fas fa-envelope"></i> Связаться с продавцом</h2>
+                    {% if user.is_authenticated %}
+                    <form action="{% url 'send-message' %}" method="POST" class="message-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="recipient_id" value="{% if listing.user %}{{ listing.user.id }}{% else %}1{% endif %}">
+                        <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                        <div class="form-group">
+                            <label>Сообщение</label>
+                            <textarea name="body" rows="4" required placeholder="Здравствуйте! Интересует ваше объявление..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Отправить
+                        </button>
+                    </form>
+                    {% else %}
+                    <p><a href="{% url 'login' %}">Войдите</a>, чтобы отправить сообщение</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <aside class="listing-sidebar">
+                <div class="sidebar-card">
+                    <h3>Действия</h3>
+                    <button class="btn btn-favorite {% if is_favorite %}active{% endif %}" data-id="{{ listing.id }}">
+                        <i class="fas fa-heart"></i>
+                        {% if is_favorite %}В избранном{% else %}В избранное{% endif %}
+                    </button>
+                    
+                    {% if not listing.is_premium %}
+                    <a href="{% url 'checkout' listing.id %}" class="btn btn-premium">
+                        <i class="fas fa-crown"></i> Сделать Premium
+                    </a>
+                    {% endif %}
+                </div>
+                
+                {% if listing.realtor %}
+                <div class="sidebar-card">
+                    <h3>Риэлтор</h3>
+                    <div class="realtor-info">
+                        <p><strong>{{ listing.realtor.name }}</strong></p>
+                        <p><i class="fas fa-phone"></i> {{ listing.realtor.phone }}</p>
+                        <p><i class="fas fa-envelope"></i> {{ listing.realtor.email }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </aside>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://api-maps.yandex.ru/2.1/?apikey=488b5b96-5d6b-4664-8bdb-76ef7016822f&lang=ru_RU" type="text/javascript"></script>
+<script>
+$(document).ready(function() {
+    $('.btn-favorite').click(function() {
+        var btn = $(this);
+        var id = btn.data('id');
+        $.post('/favorites/toggle/', {listing_id: id, csrfmiddlewaretoken: '{{ csrf_token }}'}, function(res) {
+            if (res.success) {
+                if (res.action === 'added') {
+                    btn.addClass('active').html('<i class="fas fa-heart"></i> В избранном');
+                } else {
+                    btn.removeClass('active').html('<i class="fas fa-heart"></i> В избранное');
+                }
+            }
+        });
+    });
+    
+    $('#aiForm').submit(function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var btn = form.find('button');
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Оценка...');
+        
+        $.post('/api/ai/estimate/', form.serialize(), function(res) {
+            if (res.success) {
+                $('#aiResult').html(
+                    '<div class="result-box">' +
+                    '<h4><i class="fas fa-ruble-sign"></i> Оценка: ' + res.estimated_price.toLocaleString() + ' ₽</h4>' +
+                    '<p><i class="fas fa-percent"></i> Уверенность: ' + res.confidence + '%</p>' +
+                    '<p><i class="fas fa-expand"></i> За м²: ' + res.price_per_sqm.toLocaleString() + ' ₽</p>' +
+                    {% if user.is_authenticated %}
+                    '<p><small>Осталось сегодня: ' + res.remaining_daily + ' оценок</small></p>' +
+                    {% endif %}
+                    '</div>'
+                ).show();
+            } else {
+                alert(res.error || 'Ошибка оценки');
+            }
+            btn.prop('disabled', false).html('<i class="fas fa-calculator"></i> Оценить');
+        }).fail(function(xhr) {
+            var res = xhr.responseJSON;
+            alert(res.error || 'Достигнут лимит оценок');
+            btn.prop('disabled', false).html('<i class="fas fa-calculator"></i> Оценить');
+        });
+    });
+    
+    ymaps.ready(initListingMap);
+});
+
+function initListingMap() {
+    var lat = parseFloat(document.getElementById('listing-lat').value);
+    var lng = parseFloat(document.getElementById('listing-lng').value);
+    var fullAddress = document.getElementById('listing-full-address').value;
+    
+    console.log('Map init:', {lat: lat, lng: lng, address: fullAddress});
+    
+    if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+        var map = new ymaps.Map('listing-map', {
+            center: [lat, lng],
+            zoom: 15,
+            controls: ['zoomControl', 'fullscreenControl']
+        });
+        
+        var placemark = new ymaps.Placemark([lat, lng], {
+            hintContent: '{{ listing.title }}',
+            balloonContentHeader: '<strong>{{ listing.title }}</strong>',
+            balloonContentBody: '<p>' + fullAddress + '</p>',
+            balloonContentFooter: '{{ listing.price|floatformat:0 }} ₽'
+        }, {
+            preset: 'islands#blueHomeIcon',
+            iconColor: '#4a90d9'
+        });
+        
+        map.geoObjects.add(placemark);
+    } else if (fullAddress && fullAddress.trim()) {
+        document.getElementById('map-loading-indicator').style.display = 'block';
+        
+        var formData = new FormData();
+        formData.append('address', fullAddress);
+        
+        fetch('/api/listings/geocode/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.latitude && data.longitude) {
+                $.post('/api/listings/{{ listing.slug }}/coords/', {
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                });
+                
+                var map = new ymaps.Map('listing-map', {
+                    center: [data.latitude, data.longitude],
+                    zoom: 15,
+                    controls: ['zoomControl', 'fullscreenControl']
+                });
+                
+                var placemark = new ymaps.Placemark([data.latitude, data.longitude], {
+                    hintContent: '{{ listing.title }}',
+                    balloonContentHeader: '<strong>{{ listing.title }}</strong>',
+                    balloonContentBody: '<p>' + fullAddress + '</p>',
+                    balloonContentFooter: '{{ listing.price|floatformat:0 }} ₽'
+                }, {
+                    preset: 'islands#blueHomeIcon',
+                    iconColor: '#4a90d9'
+                });
+                
+                map.geoObjects.add(placemark);
+            } else {
+                document.getElementById('listing-map').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;padding:40px;text-align:center;"><i class="fas fa-map-location-dot" style="font-size:48px;color:#ddd;margin-bottom:15px;"></i><p style="margin:0;">Адрес не найден на карте</p></div>';
+            }
+        })
+        .catch(function(error) {
+            console.error('Map error:', error);
+            document.getElementById('listing-map').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;padding:40px;text-align:center;"><i class="fas fa-exclamation-triangle" style="font-size:48px;color:#f59e0b;margin-bottom:15px;"></i><p style="margin:0;">Ошибка загрузки карты</p></div>';
+        })
+        .finally(function() {
+            document.getElementById('map-loading-indicator').style.display = 'none';
+        });
+    } else {
+        document.getElementById('listing-map').innerHTML = '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666;padding:40px;text-align:center;"><i class="fas fa-map-marked-alt" style="font-size:48px;color:#ddd;margin-bottom:15px;"></i><p style="margin:0;">Координаты не указаны</p></div>';
+    }
+}
+</script>
+{% endblock %}

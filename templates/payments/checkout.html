@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Оплата Premium{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <div class="checkout-container">
+            <h1><i class="fas fa-crown"></i> Premium статус</h1>
+            
+            <div class="checkout-listing">
+                <img src="{{ listing.photo_main.url }}" alt="{{ listing.title }}">
+                <div>
+                    <h3>{{ listing.title }}</h3>
+                    <p>{{ listing.city }}</p>
+                </div>
+            </div>
+            
+            <div class="checkout-details">
+                <div class="detail-row">
+                    <span>Срок Premium</span>
+                    <span>{{ days }} дней</span>
+                </div>
+                <div class="detail-row">
+                    <span>Преимущества</span>
+                    <ul class="benefits-list">
+                        <li><i class="fas fa-check"></i> Объявление в топе</li>
+                        <li><i class="fas fa-check"></i> Выделение цветом</li>
+                        <li><i class="fas fa-check"></i> Приоритет в поиске</li>
+                    </ul>
+                </div>
+                <div class="detail-row total">
+                    <span>Итого</span>
+                    <span>{{ amount }} USD</span>
+                </div>
+            </div>
+            
+            <form method="POST" class="checkout-form">
+                {% csrf_token %}
+                <input type="hidden" name="amount" value="{{ amount }}">
+                <input type="hidden" name="days" value="{{ days }}">
+                
+                <div class="payment-method">
+                    <label>
+                        <input type="radio" name="payment" value="sberbank" checked>
+                        <i class="fas fa-credit-card"></i> Сбербанк (Тестовый режим)
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-lock"></i> Оплатить {{ amount }} USD
+                </button>
+                
+                <p class="test-notice"><i class="fas fa-info-circle"></i> Тестовый режим - реальные деньги не списываются</p>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

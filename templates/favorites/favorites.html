@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Избранное{% endblock %}
+
+{% block extra_css %}
+<style>
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    .no-image-placeholder i {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+    .no-image-placeholder span {
+        font-size: 14px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="section-title"><i class="fas fa-heart"></i> Избранное</h1>
+        <p class="section-subtitle">Сохранённые объявления: {{ count }}</p>
+        
+        <div class="listings-grid">
+            {% for fav in favorites %}
+            <div class="listing-card">
+                <div class="card-image">
+                    <span class="badge badge-favorite"><i class="fas fa-heart"></i></span>
+                    {% if fav.listing.photo_main %}
+                    <img src="{{ fav.listing.photo_main.url }}" alt="{{ fav.listing.title }}">
+                    {% else %}
+                    <div class="no-image-placeholder">
+                        <i class="fas fa-home"></i>
+                        <span>{{ fav.listing.city }}</span>
+                    </div>
+                    {% endif %}
+                    <button class="favorite-btn active" data-id="{{ fav.listing.id }}">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <h3><a href="{% url 'listing-detail' fav.listing.slug %}">{{ fav.listing.title }}</a></h3>
+                    <p class="location"><i class="fas fa-map-marker-alt"></i> {{ fav.listing.city }}</p>
+                    <div class="card-features">
+                        <span><i class="fas fa-expand"></i> {{ fav.listing.sqft }} м²</span>
+                        <span><i class="fas fa-bed"></i> {{ fav.listing.bedrooms }}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="price">{{ fav.listing.price|floatformat:0 }} ₽</span>
+                        <a href="{% url 'listing-detail' fav.listing.slug %}" class="btn btn-sm btn-primary">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="empty-state">В избранном пока ничего нет</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.favorite-btn').click(function() {
+        var btn = $(this);
+        var id = btn.data('id');
+        $.post('/favorites/toggle/', {listing_id: id, csrfmiddlewaretoken: '{{ csrf_token }}'}, function(res) {
+            if (res.success && res.action === 'removed') {
+                btn.closest('.listing-card').fadeOut();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

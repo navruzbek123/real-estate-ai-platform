@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Объявления{% endblock %}
+
+{% block extra_css %}
+<style>
+    .no-image-placeholder {
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+    .no-image-placeholder i {
+        font-size: 48px;
+        margin-bottom: 10px;
+    }
+    .no-image-placeholder span {
+        font-size: 14px;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="section">
+    <div class="container">
+        <h1 class="section-title"><i class="fas fa-list"></i> Все объявления</h1>
+        <p class="section-subtitle">Найдено: {{ count }} объявлений</p>
+        
+        <div class="listings-grid">
+            {% for listing in listings %}
+            <div class="listing-card {% if listing.is_premium %}premium{% endif %}">
+                <div class="card-image">
+                    {% if listing.is_premium %}
+                    <span class="badge badge-premium"><i class="fas fa-crown"></i> Premium</span>
+                    {% endif %}
+                    {% if listing.photo_main %}
+                    <img src="{{ listing.photo_main.url }}" alt="{{ listing.title }}">
+                    {% else %}
+                    <div class="no-image-placeholder">
+                        <i class="fas fa-home"></i>
+                        <span>{{ listing.city }}</span>
+                    </div>
+                    {% endif %}
+                    <button class="favorite-btn" data-id="{{ listing.id }}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    <h3><a href="{% url 'listing-detail' listing.slug %}">{{ listing.title }}</a></h3>
+                    <p class="location"><i class="fas fa-map-marker-alt"></i> {{ listing.city }}</p>
+                    <div class="card-features">
+                        <span><i class="fas fa-expand"></i> {{ listing.sqft }} м²</span>
+                        <span><i class="fas fa-bed"></i> {{ listing.bedrooms }} ком.</span>
+                        <span><i class="fas fa-bath"></i> {{ listing.bathrooms }}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="price">{{ listing.price|floatformat:0 }} ₽</span>
+                        <a href="{% url 'listing-detail' listing.slug %}" class="btn btn-sm btn-primary">Подробнее</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="no-results">Объявления не найдены</p>
+            {% endfor %}
+        </div>
+        
+        {% if listings.has_other_pages %}
+        <div class="pagination">
+            {% if listings.has_previous %}
+            <a href="?page={{ listings.previous_page_number }}" class="btn">← Назад</a>
+            {% endif %}
+            <span>Страница {{ listings.number }} из {{ listings.paginator.num_pages }}</span>
+            {% if listings.has_next %}
+            <a href="?page={{ listings.next_page_number }}" class="btn">Вперёд →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
