@@ -17,7 +17,7 @@
 ### 🏠 Homepage with Interactive Map Sidebar
 *Property listings with Yandex Map filters*
 
-![Homepage with Map](screenshots/homepage-map.png)
+![Homepage with Map](screenshots/homepage.png)
 
 ### 🤖 AI Price Prediction
 *Machine Learning based real estate valuation*
